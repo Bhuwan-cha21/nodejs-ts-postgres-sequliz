@@ -8,7 +8,8 @@ exports.createToken =  ( id : number) =>{
 }
 exports.requireAuth = (req :Request, res: Response, next) => {
     
-    const token = req.cookies.jwt
+  const token =  req.headers['authorization']
+  console.log(token)
     if (token) {
       jwt.verify(token, process.env.jwtkey, (err, decodedToken) => {
         if (err) {

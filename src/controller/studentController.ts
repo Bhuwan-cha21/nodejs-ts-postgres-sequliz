@@ -5,6 +5,7 @@ const {createToken} = require('./auth')
 const studentModel = require('../model/students')
 let bodyparser = require('body-parser')
 const CryptoJS = require('crypto-js')
+let Sequlize = require('../database')
 app.use(bodyparser.json());
 export const addStudent = async (req: Request, res: Response) =>{
     const {name,email,password} = req.body
@@ -13,27 +14,35 @@ export const addStudent = async (req: Request, res: Response) =>{
         password,
         'process.env.hash_secret'
       ).toString()
-       const newItem =await studentModel.create({name : name, email: email, password : hashedPassword})
-        if(newItem){
-           res.send('Added')
-        }else{
-            res.send('Error')
-        }
+      const result = await Sequlize.query("SELECT * from  insert_student(:name,:email,:password)", {
+        replacements: { name: name, email: email, password:hashedPassword },
+        type: Sequlize.QueryTypes.SELECT
+    }
+    )
+    res.send(result)
     }
 export const deleteStudent = async (req: Request, res: Response ) =>{
     const id = parseInt(req.params.id);
     
-    studentModel.destroy({where :{id :id }})
-    res.json(`Student with id: ${id} deleted Successfully`);
+    const result = await Sequlize.query("SELECT * from  delete_student(:id)", {
+        replacements: { id: id },
+        type: Sequlize.QueryTypes.SELECT
+    }
+    )
+    res.send('de;eted')
 }
 export const getStudents = async (req: Request, res: Response) =>{
-    const Items = await studentModel.findAll()
-    let dataToSend  = []
-    Items.map((student :object) =>{
-        const {studentid,name,email} = student
-        dataToSend.push({studentid,name,email})
+    const Items = await Sequlize.query("SELECT * from  get_students()",{
+        replacements: { table : 'students' },
+        type: Sequlize.QueryTypes.SELECT
     })
-    res.send(dataToSend)
+    res.send(Items)
+    // let dataToSend  = []
+    // Items.map((student :object) =>{
+    //     const {studentid,name,email} = student
+    //     dataToSend.push({studentid,name,email})
+    // })
+    // res.send(dataToSend)
     // client.query('SELECT * FROM Students', function (err, result) {
     //     if (err) {
     //         res.send(err);
@@ -51,9 +60,11 @@ export const getStudents = async (req: Request, res: Response) =>{
 }
 export const getStudentById = async (req: Request, res: Response) =>{
     const id = parseInt(req.params.id);
-    const item = await studentModel.findByPk(id)
-    res.send(item)
-
+   const [results, metadata] = await Sequlize.query("SELECT  * from get_studentbyid(:id)",{
+        replacements: { id : id }
+    })
+    res.send(results)
+ 
     // client.query('SELECT * FROM Students WHERE studentid=$1',[id],(err,result) => {
     //     if(err){
     //         res.send(err)
@@ -63,6 +74,7 @@ export const getStudentById = async (req: Request, res: Response) =>{
     // })
 }
 export const updateStudent =async (req: Request, res: Response) =>{
+    
     const id = parseInt(req.params.id);
     const {name,email,password}  = req.body
     const hashedPassword  = CryptoJS.AES.encrypt(
@@ -70,27 +82,35 @@ export const updateStudent =async (req: Request, res: Response) =>{
         process.env.hash_secret
       ).toString()
     
-    const updated = await studentModel.updated({name: name, email:email,password:hashedPassword},{where : {studentid : id}})
-    res.send(updated)
+      const result = await Sequlize.query("SELECT  update_student(:id,:name,:email,:password)", {
+        replacements: { id:id,name: name, email: email, password:hashedPassword },
+        type: Sequlize.QueryTypes.SELECT
+    }
+    )
+    res.send(result)
 }
 export const login = async(req :Request, res:Request) => {
     const { email, password } = req.body;
-    const user = await  studentModel.findOne({ where: { email: email } })
+    const user = await  Sequlize.query('SELECT * from get_studentforlogin(:email)',{
+        replacements: {  email: email },
+        type: Sequlize.QueryTypes.SELECT
+    })
+
     if(user) {
         const hashedPassword = CryptoJS.AES.decrypt(
-            user.dataValues.password,
+            user[0].password,
             process.env.hash_secret
         )
-        const originalPassword = hashedPassword.toString(CryptoJS.enc.Utf8)
-            console.log(originalPassword)
-            if(password === originalPassword){
-                const token = createToken( user.dataValues.id);
-                res.cookie('jwt', token, { httpOnly: true, maxAge: 86400 });
-                const { studentid, name, email } =user;
+         console.log(hashedPassword)
+         const originalPassword = hashedPassword.toString(CryptoJS.enc.Utf8)
+         console.log(originalPassword)
+           
+            if(originalPassword === password){
+                const token = createToken(  user[0].id);
+                res.setHeader('Authorization', `${token}`);
+                const { id, name, email } =user[0];
                 res.status(200).json({
-                studentid: studentid,
-                name: name,
-                email: email
+               id,name,email
                 });
             }
             else{
