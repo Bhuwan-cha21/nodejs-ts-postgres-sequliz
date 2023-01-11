@@ -93,13 +93,26 @@ export const getStudentById = async (req: Request, res: Response) =>{
     })
     res.send(results)
  
-    // client.query('SELECT * FROM Students WHERE studentid=$1',[id],(err,result) => {
-    //     if(err){
-    //         res.send(err)
-    //     }else{
-    //         res.send(result.rows)
-    //     }
-    // })
+    // CREATE OR REPLACE FUNCTION public.get_studentbyid(
+    //     s_id integer)
+    //     RETURNS TABLE(id integer, name character varying, email character varying, password character varying) 
+    //     LANGUAGE 'plpgsql'
+    //     COST 100
+    //     VOLATILE PARALLEL UNSAFE
+    //     ROWS 1000
+    
+    // AS $BODY$
+    // BEGIN
+    //   RETURN QUERY
+    //   SELECT students.id, students.name, students.email, students.password
+    //   FROM students
+    //   WHERE students.id = s_id;
+    // END;
+    // $BODY$;
+    
+    // ALTER FUNCTION public.get_studentbyid(integer)
+    //     OWNER TO postgres;
+    
 }
 export const updateStudent =async (req: Request, res: Response) =>{
     
