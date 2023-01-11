@@ -2,7 +2,6 @@ let express = require('express')
 const app = express()
 import { Request, Response } from 'express';
 const {createToken} = require('./auth')
-const studentModel = require('../model/students')
 let bodyparser = require('body-parser')
 const CryptoJS = require('crypto-js')
 let Sequlize = require('../database')
@@ -20,6 +19,22 @@ export const addStudent = async (req: Request, res: Response) =>{
     }
     )
     res.send(result)
+    // CREATE OR REPLACE FUNCTION public.insert_student(
+    //     name character varying,
+    //     email character varying,
+    //     password character varying)
+    //     RETURNS void
+    //     LANGUAGE 'plpgsql'
+    //     COST 100
+    //     VOLATILE PARALLEL UNSAFE
+    // AS $BODY$
+    // BEGIN
+    //   INSERT INTO students(name, email, password) VALUES (name, email, password);
+    // END;
+    // $BODY$;
+    
+    // ALTER FUNCTION public.insert_student(character varying, character varying, character varying)
+    //     OWNER TO postgres;
     }
 export const deleteStudent = async (req: Request, res: Response ) =>{
     const id = parseInt(req.params.id);
@@ -29,7 +44,22 @@ export const deleteStudent = async (req: Request, res: Response ) =>{
         type: Sequlize.QueryTypes.SELECT
     }
     )
-    res.send('de;eted')
+    res.send('deleted')
+    // CREATE OR REPLACE FUNCTION public.delete_student(
+    //     s_id integer)
+    //     RETURNS void
+    //     LANGUAGE 'plpgsql'
+    //     COST 100
+    //     VOLATILE PARALLEL UNSAFE
+    // AS $BODY$
+    // BEGIN
+    //     DELETE FROM students
+    //     WHERE id = s_id;
+    // END;
+    // $BODY$;
+    
+    // ALTER FUNCTION public.delete_student(integer)
+    //     OWNER TO postgre
 }
 export const getStudents = async (req: Request, res: Response) =>{
     const Items = await Sequlize.query("SELECT * from  get_students()",{
@@ -37,26 +67,24 @@ export const getStudents = async (req: Request, res: Response) =>{
         type: Sequlize.QueryTypes.SELECT
     })
     res.send(Items)
-    // let dataToSend  = []
-    // Items.map((student :object) =>{
-    //     const {studentid,name,email} = student
-    //     dataToSend.push({studentid,name,email})
-    // })
-    // res.send(dataToSend)
-    // client.query('SELECT * FROM Students', function (err, result) {
-    //     if (err) {
-    //         res.send(err);
-    //     }
-    //     else {
-    //       const students =   result.rows
-    //       let dataToSend = []
-    //      students.map((student ) =>{
-    //         const {studentid,name,email} = student
-    //         dataToSend.push({studentid,name,email})
-    //      })
-    //      res.send(dataToSend)
-    //     }
-    // });
+    // CREATE OR REPLACE FUNCTION public.get_students(
+    //     )
+    //     RETURNS TABLE(name character varying, email character varying) 
+    //     LANGUAGE 'plpgsql'
+    //     COST 100
+    //     VOLATILE PARALLEL UNSAFE
+    //     ROWS 1000
+    
+    // AS $BODY$
+    // BEGIN 
+    //   RETURN QUERY SELECT students.name, students.email FROM students;
+    //  END; 
+     
+    // $BODY$;
+    
+    // ALTER FUNCTION public.get_students()
+    //     OWNER TO postgres;
+    
 }
 export const getStudentById = async (req: Request, res: Response) =>{
     const id = parseInt(req.params.id);
@@ -88,6 +116,26 @@ export const updateStudent =async (req: Request, res: Response) =>{
     }
     )
     res.send(result)
+    // CREATE OR REPLACE FUNCTION public.update_student(
+    //     s_id integer,
+    //     s_name character varying,
+    //     s_email character varying,
+    //     s_password character varying)
+    //     RETURNS void
+    //     LANGUAGE 'plpgsql'
+    //     COST 100
+    //     VOLATILE PARALLEL UNSAFE
+    // AS $BODY$
+    // BEGIN
+    //     UPDATE students
+    //     SET name = s_name, email = s_email, password = s_password
+    //     WHERE id = s_id;
+    // END;
+    // $BODY$;
+    
+    // ALTER FUNCTION public.update_student(integer, character varying, character varying, character varying)
+    //     OWNER TO postgres;
+    
 }
 export const login = async(req :Request, res:Request) => {
     const { email, password } = req.body;
@@ -119,35 +167,31 @@ export const login = async(req :Request, res:Request) => {
             }else{
                 res.send('wrong email')
             }
+            // CREATE OR REPLACE FUNCTION public.get_studentforlogin(
+            //     s_email character varying,
+            //     s_password character varying)
+            //     RETURNS TABLE(id integer, name character varying, email character varying, password character varying) 
+            //     LANGUAGE 'plpgsql'
+            //     COST 100
+            //     VOLATILE PARALLEL UNSAFE
+            //     ROWS 1000
+            
+            // AS $BODY$
+            // BEGIN
+            //   RETURN QUERY
+            //   SELECT students.id, students.name, students.email, students.password
+            //   FROM students
+            //   WHERE students.email = s_email AND students.password = s_password;
+            // END;
+            // $BODY$;
+            
+            // ALTER FUNCTION public.get_studentforlogin(character varying, character varying)
+            //     OWNER TO postgres;
     }
 
 
-    // client.query('SELECT * FROM Students where email = $1 ', [email], (err, result) => {
-    //     if (result.rows.length) {
-    //         const hashedPassword = CryptoJS.AES.decrypt(
-    //             result.rows[0].password,
-    //             process.env.hash_secret
-    //         )
-    //         const originalPassword = hashedPassword.toString(CryptoJS.enc.Utf8)
-    //         console.log(originalPassword)
-    //         if(password === originalPassword){
-    //             const token = createToken(result.rows[0].studentid);
-    //             res.cookie('jwt', token, { httpOnly: true, maxAge: 86400 });
-    //             const { studentid, name, email } = result.rows[0];
-    //             res.status(200).json({
-    //             studentid: studentid,
-    //             name: name,
-    //             email: email
-    //              });
-    //         }else{
-    //             res.send('wrong password')
-    //         }
-    //     }
-    //     else {
-    //         res.status(422).json('Wrong Email');
-    //     }
-    // });
-;
+    
+
 export const logout = (req:Request, res:Response ) =>{
     res.clearCookie("jwt");
     res.end()
