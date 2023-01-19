@@ -152,12 +152,14 @@ export const updateStudent =async (req: Request, res: Response) =>{
 }
 export const login = async(req :Request, res:Request) => {
     const { email, password } = req.body;
+
     const user = await  Sequlize.query('SELECT * from get_studentforlogin(:email)',{
         replacements: {  email: email },
         type: Sequlize.QueryTypes.SELECT
     })
-
-    if(user) {
+    
+    
+    if(user[0]) {
         const hashedPassword = CryptoJS.AES.decrypt(
             user[0].password,
             process.env.hash_secret
