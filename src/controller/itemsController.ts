@@ -47,3 +47,17 @@ export const getItems = async (req: Request, res: Response) =>{
     res.send(results)
  
 }
+export const getItemByLanguage = async (req: Request, res: Response) =>{
+    var languagetofilter = req.query.language
+    const [results, metadata] = await Sequlize.query("SELECT  * from getitems()");
+    var resultToSend = []
+    results.map((items) =>{
+        var code = items.code
+        items.data.map((item) =>{
+           if(item.language == languagetofilter){
+                resultToSend.push({code : code, text : item.text})
+           }
+        })
+    })
+    res.send(resultToSend)
+}
