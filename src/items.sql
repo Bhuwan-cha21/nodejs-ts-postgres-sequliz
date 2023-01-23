@@ -116,6 +116,15 @@ BEGIN
     SELECT data_cte.wholedata,data_cte.translationcode
     FROM data_cte
     WHERE (data_cte.wholedata->>'language') = item_language;
+    -- This query can also be used to achieve same result
+
+--     SELECT wholedata
+-- FROM (
+--   SELECT jsonb_array_elements(data) AS wholedata
+--   FROM translations
+-- ) t
+-- WHERE (wholedata->>'language') = 'NP'
+
 END;
 $BODY$;
 
