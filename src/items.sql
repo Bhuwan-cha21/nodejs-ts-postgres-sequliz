@@ -28,7 +28,9 @@ AS $BODY$
 
 DECLARE t_code int;
 BEGIN
+   
    select translationcode into t_code from items where code = item_code;
+   IF FOUND 
    update translations
    set data = updated_languages
    where translationcode = t_code;
@@ -129,5 +131,32 @@ END;
 $BODY$;
 
 ALTER FUNCTION public.get_translations(text)
+    OWNER TO postgres;
+--createorupdate
+ CREATE OR REPLACE FUNCTION public.cretaeorupdate_items(
+	item_code integer,
+	updated_languages jsonb)
+    RETURNS void
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+AS $BODY$
+  
+
+DECLARE t_code int;
+BEGIN
+   select translationcode into t_code from items where code = item_code;
+   IF FOUND THEN
+	   update translations
+	   set data = updated_languages
+	   where translationcode = t_code;
+	else 
+		insert into  items(code,translationcode) values(item_code,item_translationcode);
+  		insert into translations(translationcode , data ) values(item_translationcode, item_languages)
+   END IF		
+END;
+$BODY$;
+
+ALTER FUNCTION public.update_items(integer, jsonb)
     OWNER TO postgres;
 
