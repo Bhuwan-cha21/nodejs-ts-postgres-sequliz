@@ -73,3 +73,52 @@ $BODY$;
 
 ALTER FUNCTION public.getitems()
     OWNER TO postgres;
+--searchitem
+    CREATE OR REPLACE FUNCTION public.search_items(
+	item_text text)
+    RETURNS TABLE(wholedata jsonb, translationcode character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+BEGIN
+   RETURN QUERY  WITH data_cte AS (
+       SELECT jsonb_array_elements(data) AS wholedata, translations.translationcode
+       FROM translations
+    )
+	
+    SELECT data_cte.wholedata,data_cte.translationcode
+    FROM data_cte
+    WHERE (data_cte.wholedata->>'text') like    '%' || item_text || '%';
+END;
+$BODY$;
+
+ALTER FUNCTION public.search_items(text)
+
+--filterbylanguage
+CREATE OR REPLACE FUNCTION public.get_translations(
+	item_language text)
+    RETURNS TABLE(wholedata jsonb, translationcode character varying) 
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE PARALLEL UNSAFE
+    ROWS 1000
+
+AS $BODY$
+BEGIN
+   RETURN QUERY  WITH data_cte AS (
+       SELECT jsonb_array_elements(data) AS wholedata, translations.translationcode
+       FROM translations
+    )
+	
+    SELECT data_cte.wholedata,data_cte.translationcode
+    FROM data_cte
+    WHERE (data_cte.wholedata->>'language') = item_language;
+END;
+$BODY$;
+
+ALTER FUNCTION public.get_translations(text)
+    OWNER TO postgres;
+

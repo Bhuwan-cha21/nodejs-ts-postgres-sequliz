@@ -49,15 +49,45 @@ export const getItems = async (req: Request, res: Response) =>{
 }
 export const getItemByLanguage = async (req: Request, res: Response) =>{
     var languagetofilter = req.query.language
-    const [results, metadata] = await Sequlize.query("SELECT  * from getitems()");
-    var resultToSend = []
-    results.map((items) =>{
-        var code = items.code
-        items.data.map((item) =>{
-           if(item.language == languagetofilter){
-                resultToSend.push({code : code, text : item.text})
-           }
-        })
+    // const [results, metadata] = await Sequlize.query("SELECT  * from getitems()");
+    // var resultToSend = []
+    // results.map((items) =>{
+    //     var code = items.code
+    //     items.data.map((item) =>{
+    //        if(item.language == languagetofilter){
+    //             resultToSend.push({code : code, text : item.text})
+    //        }
+    //     })
+    // })
+    // res.send(resultToSend)
+    const [results, metadata] = await Sequlize.query("SELECT  * from get_translations(:languagetofilter)",{
+        replacements: { languagetofilter : languagetofilter }
     })
-    res.send(resultToSend)
+    res.send(results)
+}
+export const searchItem = async (req: Request, res: Response) =>{
+    var languagetofilter = req.query.language
+    // const [results, metadata] = await Sequlize.query("SELECT  * from getitems()");
+    // var resultToSend = []
+    // results.map((items) =>{
+    //     var code = items.code
+    //     items.data.map((item) =>{
+    //        if(item.language == languagetofilter){
+    //             resultToSend.push({code : code, text : item.text})
+    //        }
+    //     })
+    // })
+    // res.send(resultToSend)
+    const [results, metadata] = await Sequlize.query("SELECT  * from get_translations(:languagetofilter)",{
+        replacements: { languagetofilter : languagetofilter }
+    })
+    res.send(results)
+}
+export const searchItem = async (req: Request, res: Response) =>{
+    var search_data= req.query.search
+    
+    const [results, metadata] = await Sequlize.query("SELECT  * from search_items(:languagetofilter)",{
+        replacements: { search_data : search_data}
+    })
+    res.send(results)
 }
