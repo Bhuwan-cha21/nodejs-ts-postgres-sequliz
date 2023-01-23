@@ -144,6 +144,7 @@ AS $BODY$
   
 
 DECLARE t_code int;
+DECLARE item_translationcode int;
 BEGIN
    select translationcode into t_code from items where code = item_code;
    IF FOUND THEN
@@ -151,6 +152,7 @@ BEGIN
 	   set data = updated_languages
 	   where translationcode = t_code;
 	else 
+        item_translationcode = floor(random() * 100000000)::int;
 		insert into  items(code,translationcode) values(item_code,item_translationcode);
   		insert into translations(translationcode , data ) values(item_translationcode, item_languages)
    END IF		
